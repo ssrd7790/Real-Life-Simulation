@@ -1,1 +1,210 @@
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#faf5e9; --paper2:#f3ecda; --ink:#2b2118; --muted:#8a7a63;
+    --accent:#9a3b26; --accent2:#b5651d; --line:#e2d5bd;
+    --dlg-bg:#fffdf6; --player-bg:#efe6d2; --shadow:0 6px 24px rgba(80,55,20,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:"Hind Siliguri","Noto Serif Bengali",Georgia,serif;text-align:left;min-height:100vh;display:flex;flex-direction:column}
+  /* status bar */
+  #topbar{position:sticky;top:0;z-index:40;background:#2b2118;color:#f7efdc;display:flex;align-items:center;gap:.6rem;padding:.5rem .9rem;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  #topbar .brand{font-weight:700;white-space:nowrap}
+  #statusBar{flex:1;display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;justify-content:center;font-size:.95rem}
+  #statusBar .sep{opacity:.4}
+  #statusBar .loc{max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #simNameEl{font-size:.8rem;opacity:.75;max-width:22vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .icon-btn{background:#f7efdc;color:#2b2118;border:none;border-radius:10px;padding:.35rem .7rem;font-weight:700;cursor:pointer;font-family:inherit}
+  .icon-btn:hover{filter:brightness(.94)}
+  /* layout */
+  #layout{flex:1;display:flex;min-height:0}
+  #hud{width:305px;flex:none;background:var(--paper2);border-right:1px solid var(--line);padding:.8rem;overflow-y:auto;max-height:calc(100vh - 52px);position:sticky;top:52px}
+  #hud h3{margin:.4rem 0 .5rem;font-size:1rem}
+  #hud h4{margin:.6rem 0 .3rem;font-size:.9rem}
+  .hud-sec{background:#fffdf6;border:1px solid var(--line);border-radius:14px;padding:.65rem .7rem;margin-bottom:.7rem;box-shadow:var(--shadow)}
+  .char-big{font-size:1.15rem;font-weight:700}
+  .muted{color:var(--muted);font-size:.88rem}
+  .stat{margin:.35rem 0}
+  .stat-top{display:flex;justify-content:space-between;font-size:.9rem}
+  .stat-v{font-weight:700}
+  .bar{height:9px;background:#e8dcc3;border-radius:99px;overflow:hidden}
+  .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+  .fill.m{background:linear-gradient(90deg,#7d9b76,#4c7a45)}
+  .fill.s{background:linear-gradient(90deg,#d9a441,#b5651d)}
+  .fill.e{background:linear-gradient(90deg,#5b8fa8,#2f5d75)}
+  .money{display:flex;gap:.6rem}
+  .money>div{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:.35rem .5rem;display:flex;flex-direction:column}
+  .money b{font-size:1.05rem}
+  .inv-row,.bill-row{display:flex;justify-content:space-between;padding:.15rem 0;font-size:.92rem}
+  .bill-due{font-size:.78rem;color:var(--muted);margin:-.1rem 0 .25rem}
+  .rel-row{border-top:1px dashed var(--line);padding:.3rem 0;font-size:.88rem}
+  .rel-top{display:flex;justify-content:space-between;gap:.4rem}
+  .rel-type{color:var(--muted);font-size:.78rem}
+  .rel-sub{font-size:.8rem;color:var(--muted)}
+  .rel-note{font-size:.82rem}
+  .mem-row{font-size:.84rem;padding:.15rem 0;border-top:1px dashed var(--line)}
+  #hudClose{display:none}
+  /* stage */
+  #stage{flex:1;min-width:0;display:flex;flex-direction:column;max-height:calc(100vh - 52px)}
+  #stageWrap{flex:1;display:flex;flex-direction:column;min-height:0}
+  #filterRow{display:flex;gap:.4rem;align-items:center;padding:.5rem .9rem 0}
+  .chip{border:1px solid var(--line);background:#fffdf6;border-radius:99px;padding:.15rem .7rem;cursor:pointer;font-family:inherit;font-size:.85rem}
+  .chip.on{background:#2b2118;color:#f7efdc}
+  #charNameEl{margin-left:auto;font-size:.85rem;color:var(--muted)}
+  #narrativeCtn{flex:1;overflow-y:auto;padding:1rem clamp(.8rem,4vw,3rem);max-width:760px;width:100%;margin:0 auto}
+  .turn{margin-bottom:1rem;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+  .turn.player .ptext{background:var(--player-bg);border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:4px 14px 14px 14px;padding:.55rem .8rem;font-family:ui-monospace,monospace;white-space:pre-wrap}
+  .turn .who{font-size:.82rem;color:var(--muted);margin-bottom:.25rem}
+  .turn .who .t{opacity:.8}
+  .whead{background:#2b2118;color:#f7efdc;border-radius:10px;padding:.3rem .7rem;font-size:.85rem;margin-bottom:.5rem;display:inline-block}
+  .wbody{background:#fffdf6;border:1px solid var(--line);border-radius:6px 18px 18px 18px;padding:1rem 1.2rem;box-shadow:var(--shadow);line-height:1.95;font-size:1.06rem;font-family:"Noto Serif Bengali","Hind Siliguri",serif}
+  .wbody .para{margin:.55rem 0}
+  .dlg{background:var(--dlg-bg);border-right:3px solid var(--accent2);border-radius:8px;padding:.4rem .7rem;margin:.6rem 0}
+  .dlg-name{display:block;font-weight:700;color:var(--accent);font-size:.92rem}
+  .dlg-text{font-size:1.08rem}
+  .q{color:#6b3410;font-weight:500}
+  .dlg.intense,.para.intense{border-right-color:#c0392b;background:#fff3ef}
+  .dlg.intense .dlg-text{font-weight:700}
+  .blink{animation:bl 1s infinite}
+  @keyframes bl{50%{opacity:.35}}
+  #typingInd{padding:.3rem 1rem;color:var(--muted);font-size:.9rem}
+  /* input */
+  #inputZone{border-top:1px solid var(--line);background:var(--paper2);padding:.6rem clamp(.8rem,4vw,3rem);position:relative}
+  #inputRow{display:flex;gap:.5rem;max-width:760px;margin:0 auto}
+  #actionInput{flex:1;min-height:52px;max-height:130px;resize:vertical;border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem;font-family:inherit;font-size:1rem;background:#fffdf6;color:var(--ink)}
+  #sendBtn{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:0 1.2rem;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit}
+  #sendBtn:disabled{opacity:.5}
+  #hint{max-width:760px;margin:.35rem auto 0;font-size:.8rem;color:var(--muted)}
+  #suggest{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:6px;width:min(480px,92vw);background:#fffdf6;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;z-index:30}
+  .sug{display:flex;gap:.6rem;padding:.5rem .8rem;cursor:pointer;align-items:baseline}
+  .sug b{color:var(--accent);min-width:64px}
+  .sug span{color:var(--muted);font-size:.86rem}
+  .sug.sel,.sug:hover{background:#f3e8cf}
+  /* empty */
+  #emptyCtn{margin:auto;text-align:center;padding:2rem;max-width:560px}
+  #emptyCtn h1{font-size:2rem;margin:.4rem 0}
+  /* modals */
+  .modal{position:fixed;inset:0;background:rgba(43,33,24,.55);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem}
+  .sheet{background:var(--paper);border-radius:18px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;padding:1.2rem 1.3rem;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .sheet h2{margin-top:0}
+  .row{display:flex;gap:.6rem;flex-wrap:wrap;margin:.5rem 0}
+  .row label{flex:1;min-width:140px;display:flex;flex-direction:column;font-size:.86rem;gap:.2rem}
+  .row input,.row select,.row textarea{border:1px solid var(--line);border-radius:10px;padding:.5rem .6rem;font-family:inherit;font-size:.95rem;background:#fffdf6;color:var(--ink)}
+  .btn{background:#2b2118;color:#f7efdc !important;border:none;border-radius:10px;padding:.55rem 1rem;cursor:pointer;font-family:inherit;font-weight:600}
+  .btn.ghost{background:transparent;color:#2b2118 !important;border:1px solid var(--line)}
+  #sendBtn{color:#fff !important}
+  #topbar .icon-btn{color:#2b2118 !important}
+  .btn.warn{background:#8e2f1f}
+  #presetCards{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.7rem 0}
+  .preset-card{border:1px solid var(--line);background:#fffdf6;border-radius:14px;padding:.7rem;cursor:pointer}
+  .preset-card:hover{border-color:var(--accent)}
+  #simList{display:flex;flex-direction:column;gap:.4rem;margin:.6rem 0;max-height:240px;overflow-y:auto}
+  .sim-row{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;padding:.5rem .7rem;cursor:pointer;background:#fffdf6}
+  .sim-row.active{border-color:var(--accent);box-shadow:var(--shadow)}
+  .sim-row .dot{width:10px;height:10px;border-radius:99px;background:#cbbb9a}
+  .sim-row.active .dot{background:var(--accent)}
+  kbd{background:#eee;border:1px solid #ccc;border-radius:6px;padding:0 .35rem;font-size:.85em}
+  @media (max-width:900px){
+    #hud{position:fixed;left:0;top:52px;bottom:0;z-index:60;transform:translateX(-105%);transition:.25s;max-height:none;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+    body.hud-open #hud{transform:none}
+    #hudClose{display:block;margin-bottom:.5rem}
+    #presetCards{grid-template-columns:1fr}
+    #statusBar .loc{max-width:52vw}
+    #simNameEl{display:none}
+  }
+</style>
+
+<div id="topbar">
+  <button class="icon-btn" id="hudToggle" title="ড্যাশবোর্ড">☰</button>
+  <span class="brand">📖 জীবন সিম</span>
+  <div id="statusBar"><span class="st">লোড হচ্ছে…</span></div>
+  <span id="simNameEl"></span>
+  <button class="icon-btn" id="menuBtn">মেনু</button>
+</div>
+
+<div id="layout">
+  <aside id="hud"><button class="icon-btn" id="hudClose">✕ বন্ধ করো</button><div id="hudBody"></div></aside>
+  <main id="stage">
+    <div id="emptyCtn">
+      <h1>📖 জীবন সিমুলেটর</h1>
+      <p>বাংলায় বাঁচো অন্য একটা জীবন। AI দুনিয়া চালাবে — তুমি শুধু তোমার চরিত্রের কাজ করো।</p>
+      <button class="btn" id="newBtn2">✨ নতুন জীবন শুরু করো</button>
+    </div>
+    <div id="stageWrap" hidden>
+      <div id="filterRow">
+        <button class="chip on" data-f="all">সব</button>
+        <button class="chip" data-f="player">🧭 তুমি</button>
+        <button class="chip" data-f="world">🌏 দুনিয়া</button>
+        <span id="charNameEl"></span>
+      </div>
+      <div id="narrativeCtn"></div>
+      <div id="typingInd" hidden>⏳ <span class="tmsg">দুনিয়া ভাবছে…</span></div>
+      <div id="inputZone">
+        <div id="suggest" hidden></div>
+        <div id="inputRow">
+          <textarea id="actionInput" placeholder="তোমার কাজ লেখো… যেমন: আমি চায়ের দোকানে গিয়ে একটা চা অর্ডার করলাম। (কমান্ডের জন্য / লেখো)"></textarea>
+          <button id="sendBtn">➤</button>
+        </div>
+        <div id="hint">সরাসরি কাজ লেখো · <kbd>/</kbd> চাপলে কমান্ড: <b>/talk</b> কথা · <b>/skip</b> সময় · <b>/swap</b> দৃষ্টি বদল · <b>/pay</b> বিল · <b>/help</b> সাহায্য · <kbd>Enter</kbd> পাঠাও, <kbd>Shift+Enter</kbd> নতুন লাইন</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="menuModal" hidden>
+  <div class="sheet">
+    <h2>⚙️ মেনু ও সেভ</h2>
+    <div class="row">
+      <button class="btn" id="newBtn">✨ নতুন জীবন</button>
+      <button class="btn ghost" id="editBtn">✏️ এডিট</button>
+      <button class="btn ghost" id="exportBtn">⬇️ এক্সপোর্ট</button>
+      <label class="btn ghost" style="text-align:center">⬆️ ইমপোর্ট<input type="file" id="importInput" accept=".json" hidden></label>
+      <button class="btn warn" id="deleteBtn">🗑️ মুছো</button>
+    </div>
+    <h3>💾 সেভ করা জীবন</h3>
+    <div id="simList"></div>
+    <div class="row"><button class="btn ghost" id="closeMenuBtn">বন্ধ করো</button></div>
+  </div>
+</div>
+
+<div class="modal" id="wizardModal" hidden>
+  <div class="sheet">
+    <h2>✨ নতুন জীবন বেছে নাও</h2>
+    <div class="row"><label>শহর<select id="cityFilter"><option value="all">সব শহর</option><option value="kolkata">কলকাতা</option><option value="mumbai">মুম্বাই</option><option value="dhaka">ঢাকা</option></select></label></div>
+    <div id="presetCards"></div>
+    <div class="row">
+      <button class="btn ghost" id="customBtn">🛠️ কাস্টম চরিত্র বানাও</button>
+      <button class="btn ghost" id="closeWizardBtn">বন্ধ করো</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="customModal" hidden>
+  <div class="sheet">
+    <h2>🛠️ কাস্টম চরিত্র</h2>
+    <div class="row"><label>নাম<input id="cName" value="নতুন চরিত্র"></label><label>বয়স (১৮+)<input id="cAge" type="number" value="25" min="18"></label></div>
+    <div class="row"><label>লিঙ্গ<select id="cGender"><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></label><label>শহর<select id="cCity"><option value="kolkata">কলকাতা</option><option value="mumbai">মুম্বাই</option><option value="dhaka">ঢাকা</option></select></label></div>
+    <div class="row"><label>পেশা<input id="cOcc" value="ছোট ব্যবসায়ী"></label><label>শ্রেণি<select id="cClass"><option>নিম্নবিত্ত</option><option>নিম্ন-মধ্যবিত্ত</option><option>মধ্যবিত্ত</option><option>উচ্চ-মধ্যবিত্ত</option><option>উচ্চবিত্ত</option></select></label></div>
+    <div class="row"><label>ব্যক্তিত্ব<textarea id="cPers" rows="2"></textarea></label></div>
+    <div class="row"><label>পটভূমি<textarea id="cBg" rows="2"></textarea></label></div>
+    <div class="row"><button class="btn" id="startCustomBtn">শুরু করো</button><button class="btn ghost" id="closeCustomBtn">বন্ধ করো</button></div>
+  </div>
+</div>
+
+<div class="modal" id="editModal" hidden>
+  <div class="sheet">
+    <h2>✏️ সিমুলেশন এডিট</h2>
+    <div class="row"><label>নাম<input id="eName"></label><label>বয়স (১৮+)<input id="eAge" type="number" min="18"></label></div>
+    <div class="row"><label>পেশা<input id="eOcc"></label><label>লোকেশন<input id="eLoc"></label></div>
+    <div class="row"><label>স্বাস্থ্য<input id="eHealth" type="number" min="0" max="100"></label><label>মন<input id="eMood" type="number" min="0" max="100"></label><label>পেট ভরা<input id="eSat" type="number" min="0" max="100"></label><label>শক্তি<input id="eEnergy" type="number" min="0" max="100"></label></div>
+    <div class="row"><label>নগদ<input id="eCash" type="number"></label><label>ব্যাংক<input id="eBank" type="number"></label></div>
+    <div class="row"><label>ব্যক্তিত্ব<textarea id="ePers" rows="2"></textarea></label></div>
+    <div class="row"><label>পটভূমি<textarea id="eBg" rows="2"></textarea></label></div>
+    <div class="row"><button class="btn" id="saveEditBtn">সেভ করো</button><button class="btn ghost" id="closeEditBtn">বন্ধ করো</button></div>
+  </div>
+</div>
+
+<script type="module" src="src/app.js"></script>
 
