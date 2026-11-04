@@ -1,1 +1,9 @@
+$meta
+  title = জীবন সিমুলেটর — Bengali Life Sim
+  shortTitle = জীবন সিম
+  description = বাংলায় ইমার্সিভ ফার্স্ট-পার্সন জীবন সিমুলেশন। AI ওয়ার্ল্ড-সিমুলেটর হিসেবে পরিবেশ, NPC, পরিণতি ও স্মৃতি চালায়। কলকাতা / মুম্বাই / ঢাকা।
+  tags = bengali, life sim, rpg, story, simulation
+
+generateText = {import:ai-text-plugin}
+kv = {import:kv-plugin}
 
